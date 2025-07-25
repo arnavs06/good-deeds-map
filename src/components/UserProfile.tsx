@@ -46,7 +46,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, stats }) => {
             <p className="text-muted-foreground">{user.location}</p>
             <p className="text-sm text-muted-foreground">Member since {user.joinDate}</p>
           </div>
-          <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-4 py-2">
+          <Badge className="bg-gradient-to-r from-primary via-primary-glow to-accent text-primary-foreground px-4 py-2">
             {stats.rank}
           </Badge>
         </div>
@@ -64,7 +64,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, stats }) => {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="p-4 text-center">
-          <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+          <div className="text-3xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
             {stats.totalKarma}
           </div>
           <p className="text-sm text-muted-foreground">Total Karma</p>

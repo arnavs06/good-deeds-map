@@ -191,9 +191,9 @@ const CreateDeedForm: React.FC<CreateDeedFormProps> = ({ onSubmit, onCancel }) =
           </Button>
           <Button
             type="submit"
-            className="flex-1 bg-gradient-to-r from-primary to-primary-glow"
+            className="flex-1 bg-gradient-to-r from-primary via-primary-glow to-accent hover:opacity-90"
           >
-            Post Request
+            Post Care Request
           </Button>
         </div>
       </form>

@@ -173,9 +173,9 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
       <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm p-3 rounded-lg shadow-lg">
-        <h2 className="font-semibold text-sm mb-1">KindMap</h2>
+        <h2 className="font-semibold text-sm mb-1">CareBnB</h2>
         <p className="text-xs text-muted-foreground">
-          {goodDeeds.length} good deeds nearby
+          {goodDeeds.length} care requests nearby
         </p>
       </div>
     </div>

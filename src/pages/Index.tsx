@@ -49,14 +49,14 @@ const Index = () => {
   };
 
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground p-6">
+    <div className="bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Heart className="w-6 h-6" />
-            KindMap
+            CareBnB
           </h1>
-          <p className="text-primary-foreground/80">Spread kindness, one deed at a time</p>
+          <p className="text-primary-foreground/90">Care for others, stay anywhere</p>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold">{mockUserStats.totalKarma}</div>
@@ -110,7 +110,7 @@ const Index = () => {
         return (
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Nearby Good Deeds</h2>
+              <h2 className="text-xl font-semibold">Care Requests</h2>
               <Badge variant="secondary">{mockAlerts.length} available</Badge>
             </div>
             {mockAlerts.map((alert) => (

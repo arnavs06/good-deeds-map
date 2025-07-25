@@ -71,12 +71,12 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onAccept }) => {
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="bg-gradient-to-r from-accent to-alert bg-clip-text text-transparent font-bold">
+        <div className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent font-bold">
           +{alert.reward} Karma Points
         </div>
         <Button 
           onClick={() => onAccept(alert.id)}
-          className="bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
+          className="bg-gradient-to-r from-primary via-primary-glow to-accent hover:opacity-90 transition-opacity"
         >
           Accept Mission
         </Button>
