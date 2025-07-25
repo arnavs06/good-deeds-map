@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+
+// Import Mapbox CSS - sometimes this needs to be handled differently in Vite
+try {
+  import('mapbox-gl/dist/mapbox-gl.css');
+} catch (e) {
+  console.warn('Mapbox CSS import failed, loading from CDN');
+}
 
 interface User {
   id: string;
@@ -44,14 +50,24 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
       setIsLoading(true);
       setMapError('');
       
+      // Set access token
       mapboxgl.accessToken = token;
+      
+      // Add Mapbox CSS dynamically if not loaded
+      if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+        document.head.appendChild(link);
+      }
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [-74.006, 40.7128], // NYC
         zoom: 12,
-        attributionControl: false
+        attributionControl: false,
+        preserveDrawingBuffer: true // Helps with rendering issues
       });
 
       map.current.addControl(
@@ -60,28 +76,35 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
       );
 
       map.current.on('load', () => {
+        console.log('Map loaded successfully');
         setIsLoading(false);
-        addUsersToMap();
-        addGoodDeedsToMap();
+        // Add a small delay to ensure everything is ready
+        setTimeout(() => {
+          addUsersToMap();
+          addGoodDeedsToMap();
+        }, 100);
       });
 
       map.current.on('error', (e) => {
         console.error('Mapbox error:', e);
         setIsLoading(false);
-        setMapError('Failed to load map. Please check your API key.');
+        setMapError(`Failed to load map: ${e.error?.message || 'Please check your API key'}`);
         setShowApiInput(true);
       });
 
       map.current.on('style.load', () => {
+        console.log('Map style loaded');
         // Ensure markers are added after style loads
-        addUsersToMap();
-        addGoodDeedsToMap();
+        setTimeout(() => {
+          addUsersToMap();
+          addGoodDeedsToMap();
+        }, 100);
       });
 
     } catch (error) {
       console.error('Map initialization error:', error);
       setIsLoading(false);
-      setMapError('Failed to initialize map. Please check your API key.');
+      setMapError(`Failed to initialize map: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setShowApiInput(true);
     }
   };
@@ -252,7 +275,7 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+      <div ref={mapContainer} className="map-container rounded-lg" />
       
       {isLoading && (
         <div className="absolute inset-0 bg-muted/50 rounded-lg flex items-center justify-center">
