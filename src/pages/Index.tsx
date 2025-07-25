@@ -49,7 +49,7 @@ const Index = () => {
   };
 
   const renderHeader = () => (
-    <div className="bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground p-6">
+    <div className="bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground p-6 safe-area-top">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -143,7 +143,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
       {renderHeader()}
       
       <div className="flex-1 overflow-auto">

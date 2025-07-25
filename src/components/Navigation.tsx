@@ -18,8 +18,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, alertCo
   ];
 
   return (
-    <div className="bg-card border-t border-border">
-      <div className="flex items-center justify-around py-2">
+    <div className="bg-card border-t border-border safe-area-bottom">
+      <div className="flex items-center justify-around py-3">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -30,14 +30,14 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, alertCo
               variant="ghost"
               size="sm"
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 relative ${
+              className={`flex flex-col items-center gap-1.5 h-auto py-3 px-4 relative min-h-[60px] ${
                 isActive 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className="w-6 h-6" />
                 {tab.count && tab.count > 0 && (
                   <Badge className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 flex items-center justify-center text-xs bg-alert text-alert-foreground">
                     {tab.count}
