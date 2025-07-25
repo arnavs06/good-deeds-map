@@ -34,39 +34,71 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [showApiInput, setShowApiInput] = useState(!apiKey);
   const [tempApiKey, setTempApiKey] = useState('');
+  const [mapError, setMapError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const initializeMap = (token: string) => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = token;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [-74.006, 40.7128], // NYC
-      zoom: 12,
-    });
+    try {
+      setIsLoading(true);
+      setMapError('');
+      
+      mapboxgl.accessToken = token;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [-74.006, 40.7128], // NYC
+        zoom: 12,
+        attributionControl: false
+      });
 
-    map.current.addControl(
-      new mapboxgl.NavigationControl(),
-      'top-right'
-    );
+      map.current.addControl(
+        new mapboxgl.NavigationControl(),
+        'top-right'
+      );
 
-    map.current.on('load', () => {
-      addUsersToMap();
-      addGoodDeedsToMap();
-    });
+      map.current.on('load', () => {
+        setIsLoading(false);
+        addUsersToMap();
+        addGoodDeedsToMap();
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setIsLoading(false);
+        setMapError('Failed to load map. Please check your API key.');
+        setShowApiInput(true);
+      });
+
+      map.current.on('style.load', () => {
+        // Ensure markers are added after style loads
+        addUsersToMap();
+        addGoodDeedsToMap();
+      });
+
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      setIsLoading(false);
+      setMapError('Failed to initialize map. Please check your API key.');
+      setShowApiInput(true);
+    }
   };
 
   const addUsersToMap = () => {
-    if (!map.current) return;
+    if (!map.current || !map.current.isStyleLoaded()) return;
 
     users.forEach(user => {
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div class="text-center p-2">
-          <img src="${user.avatar}" alt="${user.name}" class="w-12 h-12 rounded-full mx-auto mb-2" />
-          <h3 class="font-semibold">${user.name}</h3>
-          <p class="text-sm text-gray-600">${user.points} karma points</p>
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false
+      }).setHTML(`
+        <div style="text-align: center; padding: 8px;">
+          <img src="${user.avatar}" alt="${user.name}" style="width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 8px;" />
+          <h3 style="font-weight: 600; margin: 0 0 4px 0;">${user.name}</h3>
+          <p style="font-size: 14px; color: #666; margin: 0;">${user.points} karma points</p>
         </div>
       `);
 
@@ -81,18 +113,28 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
   };
 
   const addGoodDeedsToMap = () => {
-    if (!map.current) return;
+    if (!map.current || !map.current.isStyleLoaded()) return;
 
     goodDeeds.forEach(deed => {
       const urgencyColor = deed.urgency === 'high' ? '#ef4444' : deed.urgency === 'medium' ? '#f59e0b' : '#10b981';
       
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div class="p-3 min-w-64">
-          <h3 class="font-bold text-lg mb-2">${deed.title}</h3>
-          <p class="text-sm text-gray-600 mb-2">${deed.description}</p>
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-medium">+${deed.reward} karma</span>
-            <button class="good-deed-btn bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700" data-deed-id="${deed.id}">
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false
+      }).setHTML(`
+        <div style="padding: 12px; min-width: 250px;">
+          <h3 style="font-weight: bold; font-size: 18px; margin: 0 0 8px 0;">${deed.title}</h3>
+          <p style="font-size: 14px; color: #666; margin: 0 0 8px 0;">${deed.description}</p>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 14px; font-weight: 500;">+${deed.reward} karma</span>
+            <button 
+              class="good-deed-btn" 
+              data-deed-id="${deed.id}"
+              style="background-color: #16a34a; color: white; padding: 4px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; cursor: pointer;"
+              onmouseover="this.style.backgroundColor='#15803d'"
+              onmouseout="this.style.backgroundColor='#16a34a'"
+            >
               Help Out!
             </button>
           </div>
@@ -109,29 +151,62 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
 
       // Add click handler for the popup button
       popup.on('open', () => {
-        const button = document.querySelector(`[data-deed-id="${deed.id}"]`);
-        button?.addEventListener('click', () => {
-          onDeedClick(deed);
-          popup.remove();
-        });
+        const button = document.querySelector(`[data-deed-id="${deed.id}"]`) as HTMLButtonElement;
+        if (button) {
+          button.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDeedClick(deed);
+            popup.remove();
+          };
+        }
       });
     });
   };
 
   useEffect(() => {
-    if (apiKey) {
+    // Cleanup existing map before creating new one
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
+
+    if (apiKey && apiKey.trim()) {
       initializeMap(apiKey);
     }
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [apiKey]);
 
+  // Re-add markers when data changes
+  useEffect(() => {
+    if (map.current && map.current.isStyleLoaded()) {
+      addUsersToMap();
+      addGoodDeedsToMap();
+    }
+  }, [users, goodDeeds]);
+
   const handleApiKeySubmit = () => {
-    if (tempApiKey.trim()) {
+    const trimmedKey = tempApiKey.trim();
+    if (trimmedKey) {
+      if (!trimmedKey.startsWith('pk.')) {
+        setMapError('Invalid API key format. Mapbox public tokens start with "pk."');
+        return;
+      }
       setShowApiInput(false);
-      initializeMap(tempApiKey);
+      setMapError('');
+      initializeMap(trimmedKey);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleApiKeySubmit();
     }
   };
 
@@ -143,18 +218,24 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
           <p className="text-sm text-muted-foreground mb-4">
             Get your public token from{' '}
             <a 
-              href="https://mapbox.com/" 
+              href="https://account.mapbox.com/access-tokens/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              mapbox.com
+              account.mapbox.com
             </a>
           </p>
+          {mapError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{mapError}</p>
+            </div>
+          )}
           <input
             type="text"
             value={tempApiKey}
             onChange={(e) => setTempApiKey(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder="pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGV..."
             className="w-full p-3 border border-border rounded-lg mb-4"
           />
@@ -172,7 +253,28 @@ const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
-      <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm p-3 rounded-lg shadow-lg">
+      
+      {isLoading && (
+        <div className="absolute inset-0 bg-muted/50 rounded-lg flex items-center justify-center">
+          <div className="bg-card p-4 rounded-lg shadow-lg">
+            <p className="text-sm">Loading map...</p>
+          </div>
+        </div>
+      )}
+      
+      {mapError && !showApiInput && (
+        <div className="absolute top-4 left-4 bg-red-50 border border-red-200 p-3 rounded-lg shadow-lg max-w-sm">
+          <p className="text-sm text-red-600 mb-2">{mapError}</p>
+          <button
+            onClick={() => setShowApiInput(true)}
+            className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+          >
+            Change API Key
+          </button>
+        </div>
+      )}
+
+      <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-sm p-3 rounded-lg shadow-lg">
         <h2 className="font-semibold text-sm mb-1">CareBnB</h2>
         <p className="text-xs text-muted-foreground">
           {goodDeeds.length} care requests nearby
