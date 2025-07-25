@@ -26,7 +26,7 @@ interface MapProps {
   users: User[];
   goodDeeds: GoodDeed[];
   onDeedClick: (deed: GoodDeed) => void;
-  apiKey?: "pk.eyJ1IjoiYXJuYXZzayIsImEiOiJjbWRpNjhrcGMwOTZnMmtxMGtvbGcxaGpjIn0.kglBR-csynN4bR_5J3PpZQ";
+  apiKey?: string;
 }
 
 const Map: React.FC<MapProps> = ({ users, goodDeeds, onDeedClick, apiKey }) => {
